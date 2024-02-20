@@ -1,7 +1,11 @@
+'use strict';
+
 // -- HTMLGE -- //
 
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
+
+const RESCALE_PREC = 1;
 
 const env = {
     w : 64,
@@ -43,7 +47,7 @@ document.onkeyup =
     function update() {
         env.s = env._s;
         if (env._s == null)
-            env.s = Math.floor(Math.min(window.innerHeight/env.h,window.innerWidth/env.w));
+            env.s = Math.floor(Math.min(window.innerHeight/env.h,window.innerWidth/env.w)*RESCALE_PREC)/RESCALE_PREC;
         if (w != env.w || h != env.h || !env.screen) {
             w = env.w;
             h = env.h;
@@ -165,6 +169,8 @@ screenSize(256,256);
 var instance;
 /** @type {Uint8Array}  */
 var memory;
+/** @type {DataView} */
+var memory_view;
 
 const WasmLib = {
     'env': {
@@ -189,15 +195,38 @@ const WasmLib = {
                 }
             }
         },
+
+        ge_screen_push: () => {
+            /* not implemented yet :p */
+        },
+
+        epu_load_floppy: (id,data_ptr,size_ptr) => {
+            const floppy = floppies.get(id);
+            if (!floppy) {
+                return 0;
+            }
+            if (data_ptr) memory.set(floppy,data_ptr);
+            if (size_ptr) memory_view.setUint32(size_ptr,floppy.length,true);
+            return 1;
+        }
     },
 };
+
+/** @type {Map<number,Uint8Array>} */
+const floppies = new Map();
 
 ;(async()=>{
 
     try {
+        const boot_floppy = await fetch('boot.img');
+        if (boot_floppy.ok) {
+            floppies.set(0,new Uint8Array(await boot_floppy.arrayBuffer()));
+        }
+
         const wasm = await fetch('epu.wasm');
         ( { instance } = await WebAssembly.instantiate(await wasm.arrayBuffer(),WasmLib) );
         memory = new Uint8Array(instance.exports.memory.buffer);
+        memory_view = new DataView(instance.exports.memory.buffer);
         
         instance.exports.main();
     } catch (e) {

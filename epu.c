@@ -1,3 +1,10 @@
+#define string_impl
+#define fat_impl
+
+#include "string.h"
+#include "inttypes.h"
+#include "fat16.h"
+
 /* Sets the size of the screen */
 extern void ge_screen_size( int width, int height );
 /* Writes data to the screen */
@@ -11,9 +18,10 @@ extern void ge_key_pressed( int key, int* pressed );
 /* Returns the position of the mouse */
 extern void ge_mouse_pos( int* x, int* y );
 
+/* Calls a peripheral */
 extern int epu_call_peripheral(int address, int a, int b, int c);
-
-extern void print(const char* fmt, ...);
+/* Loads a specific floppy disk */
+extern int epu_load_floppy(int index, void* data, int* size);
 
 typedef struct color_t {
     unsigned char r;
@@ -27,6 +35,9 @@ typedef struct image_t {
     int w;
     int h;
 } image;
+
+#define BOOT_FLOPPY_SIZE 1048576
+#define MEM_SEGMENT_SIZE 16777216
 
 #define WIDTH  512
 #define HEIGHT 342
@@ -75,6 +86,45 @@ image floppy_logo = {
     .h = 10,
 };
 
+unsigned char floppy_bad_logo_img[] = {
+    0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000000, 
+    0b00000001, 0b00100011, 0b00100011, 0b01101011, 0b01101011, 0b00000011, 0b01101011, 0b00100011, 0b00000001, 0b00000001, 
+    0b00000001, 0b00100011, 0b00100011, 0b01101011, 0b01101011, 0b00000011, 0b01101011, 0b00100011, 0b00100011, 0b00000001, 
+    0b00000001, 0b00100011, 0b00100011, 0b00100011, 0b00100011, 0b00100011, 0b00100011, 0b00100011, 0b00100011, 0b00000001, 
+    0b00000001, 0b00100011, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b00100011, 0b00000001, 
+    0b00000001, 0b00100011, 0b01110101, 0b01101011, 0b01101011, 0b01101011, 0b01101011, 0b01110101, 0b00100011, 0b00000001, 
+    0b00000001, 0b00100011, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b00100011, 0b00000001, 
+    0b00000001, 0b00100011, 0b01110101, 0b01101011, 0b01101011, 0b01101011, 0b01101011, 0b01110101, 0b00100011, 0b00000001, 
+    0b00000001, 0b00100011, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b01110101, 0b00100011, 0b00000001, 
+    0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 
+};
+image floppy_bad_logo = {
+    .img = floppy_bad_logo_img,
+    .w = 10,
+    .h = 10,
+};
+
+unsigned char floppy_corr_logo_img[] = {
+    0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000000, 
+    0b00000001, 0b00101011, 0b00101011, 0b01111011, 0b01111011, 0b00000011, 0b01111011, 0b00101011, 0b00000001, 0b00000001, 
+    0b00000001, 0b00101011, 0b00101011, 0b01111011, 0b01111011, 0b00000011, 0b01111011, 0b00101011, 0b00101011, 0b00000001, 
+    0b00000001, 0b00101011, 0b00101011, 0b00101011, 0b00101011, 0b00101011, 0b00101011, 0b00101011, 0b00101011, 0b00000001, 
+    0b00000001, 0b00101011, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b00101011, 0b00000001, 
+    0b00000001, 0b00101011, 0b01111101, 0b01111011, 0b01111011, 0b01111011, 0b01111011, 0b01111101, 0b00101011, 0b00000001, 
+    0b00000001, 0b00101011, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b00101011, 0b00000001, 
+    0b00000001, 0b00101011, 0b01111101, 0b01111011, 0b01111011, 0b01111011, 0b01111011, 0b01111101, 0b00101011, 0b00000001, 
+    0b00000001, 0b00101011, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b01111101, 0b00101011, 0b00000001, 
+    0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 0b00000001, 
+};
+image floppy_corr_logo = {
+    .img = floppy_corr_logo_img,
+    .w = 10,
+    .h = 10,
+};
+
+unsigned char boot_floppy_data[BOOT_FLOPPY_SIZE];
+unsigned char boot_program[MEM_SEGMENT_SIZE];
+
 void clear_screen() {
     for (int i = 0; i < WIDTH*HEIGHT; i++) {
         screen[i].r =
@@ -96,10 +146,37 @@ void blit_image(image* img, int ox, int oy) {
     }
 }
 
+void send_video() {
+    ge_screen_set(screen, 0, 0, WIDTH, HEIGHT);
+    ge_screen_push();
+}
+
 int main() {
     ge_screen_size(WIDTH,HEIGHT);
     blit_image(&boot_logo,0,0);
-    blit_image(&floppy_logo,21,3);
-    ge_screen_set(screen, 0, 0, WIDTH, HEIGHT);
+    send_video();
+    
+    int boot_floppy_size;
+    if (!epu_load_floppy(0,boot_floppy_data,&boot_floppy_size)) {
+        blit_image(&floppy_logo,21,3);
+        send_video();
+        return 1;
+    } else if (boot_floppy_size != BOOT_FLOPPY_SIZE) {
+        blit_image(&floppy_bad_logo,21,3);
+        send_video();
+        return 1;
+    }
+
+    fat_disk floppy;
+    floppy.data = boot_floppy_data;
+    fat_read_boot_sector(&floppy);
+
+    int boot_program_size;
+    if (fat_boot_file(&floppy,boot_program,&boot_program_size)) {
+        blit_image(&floppy_corr_logo,21,3);
+        send_video();
+        return 1;
+    }
+    
     return 0;
 }
