@@ -711,7 +711,7 @@ int loop(size_t steps) { for (size_t it = 0; it < steps; it++) {
                         y = (x/(WIDTH/8))*8;
                         x = (x%(WIDTH/8))*8;
                     }
-                    else if (context->rd&2) {
+                    else if (!(context->rd&2)) {
                         x *= 8;
                         y *= 8;
                     }
