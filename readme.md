@@ -19,6 +19,12 @@ $ npx tsx src/assembler/assembler.ts src/assembler/draw.asm boot.bin # Builds th
 $ sudo tasks/updboot.sh                                              # Saves it to the boot disk
 ```
 
+And then you can serve the page, and head over to http://localhost:3232
+
+```sh
+$ npx http-server -p 3232 -c-1
+```
+
 ## Errors
 
 * When the system boots, the first kind of error that can occur is with an orange spiral filling the screen up. In that case, it is a significant JS-side error and you should report to the console for more information.
