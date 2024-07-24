@@ -7,19 +7,16 @@ An upgrade to my previous virtual custom architectures that this time is entirel
 Set up the environment with:
 
 ```sh
-$ chmod +x *.sh # Enables the execution of the scripts
-$ ./build.sh    # Build the emulator
-$ ./gendisk.sh  # Creates a disk image
+$ chmod +x tasks/*.sh # Enables the execution of the scripts
+$ tasks/build.sh    # Build the emulator
+$ tasks/gendisk.sh  # Creates a disk image
 ```
 
-After this, you can set the boot file like so:
+There is a WIP assembler, that comes with a 'drawing' program
 
 ```sh
-$ mkdir boot-floppy                   # Mounts the disk
-$ sudo mount boot.img boot-floppy     # |
-$ sudo cp BOOT_FILE boot-floppy/boot  # Copies the boot file into the disk
-$ sudo unmount boot.img               # Unmounts the disk
-$ rm boot-floppy                      # |
+$ npx tsx src/assembler/assembler.ts src/assembler/draw.asm boot.bin # Builds the program
+$ sudo tasks/updboot.sh                                              # Saves it to the boot disk
 ```
 
 ## Errors

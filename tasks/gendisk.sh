@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+## Generates a blank FAT16 floppy disk ##
+set -xe
+
 # Creates a FAT16 disk image
 
 IMAGE_FILE=boot.img
@@ -9,22 +12,11 @@ if [ -f $IMAGE_FILE ]; then
     exit 1
 fi
 
-function ensure { # I have no idea how to do better, basically makes sure everything's alight and crashes if not
-    if [ $? -ne 0 ]; then
-        exit 1
-    fi
-}
-
 # Creates a disk with 65536 sectors of 512 bytes
 dd if=/dev/zero count=65536 bs=512 of=$IMAGE_FILE
-    ensure
 (echo o; echo n; echo p; echo 1; echo 2048; echo 65535; echo t; echo 6; echo w; echo q) | fdisk $IMAGE_FILE
-    ensure
 mkfs.fat -F 16 $IMAGE_FILE
-    ensure
 
 # Resize the disk to 2048 sectors
 truncate -s 1048576 $IMAGE_FILE
-    ensure
 echo "000020: 00 00 08 00" | xxd -r - $IMAGE_FILE
-    ensure

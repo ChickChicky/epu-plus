@@ -27,7 +27,7 @@ typedef struct fat_boot_sector_t {
     char      fs_type[8];
     char      bootstrap_code2[448];
     uint16_t  signature;
-} fat_boot_sector;
+} __attribute__((packed)) fat_boot_sector;
 
 typedef struct fat_file_small_t {
     char     name[8];
@@ -43,9 +43,9 @@ typedef struct fat_file_small_t {
     uint16_t last_write_date;
     uint16_t start_cluster;
     uint32_t file_size;
-} fat_file_small;
+} __attribute__((packed)) fat_file_small;
 
-typedef struct fat_file_t {
+typedef struct fat_file_extended_t {
     uint8_t        ordinal;
     uint16_t       name1[5];
     char           attr;
@@ -55,12 +55,32 @@ typedef struct fat_file_t {
     char           _padding2[2];
     uint16_t       name3[2];
     fat_file_small entry;
+} __attribute__((packed)) fat_file_extended;
+
+/* (non-standard) */
+typedef struct dos_time_t {
+    uint8_t  cs;
+    uint16_t time;
+    uint16_t date;
+} dos_time;
+
+/* (non-standard) */
+typedef struct fat_file_t {
+    char name[8];
+    char ext[3];
+    uint32_t size;
+    char flags;
+    dos_time creation;
+    dos_time last_write;
+    dos_time last_read;
+    void* _data;
+    uint16_t _start;
 } fat_file;
 
 typedef struct fat_disk_t {
     uint8_t* data;
     fat_boot_sector* boot;
-} fat_disk;
+} __attribute__((packed)) fat_disk;
 
 /* Reads the boot sector from a disk and writes it into the disk struct */
 void fat_read_boot_sector(fat_disk* disk) 
@@ -200,6 +220,45 @@ int fat_boot_file(fat_disk* disk, void* data, int* size)
         }
     }
     return 1;
+}
+#endif
+;
+
+/* Reads a directory entry (not standard) */
+void fat_read_file_entry(uint8_t* data, fat_file* file)
+#ifdef fat_impl
+{
+    *file = (fat_file){
+        .name = {' '},
+        .ext = {' '},
+        .flags = *(data+0x0B),
+        .size = *(uint32_t*)(data+0x1C),
+        .creation = {
+            .cs  = 0,
+            .time = *(uint16_t*)(data+0x0E),
+            .date = *(uint16_t*)(data+0x10)
+        },
+        .last_read = { 
+            .cs = 0,
+            .time = 0,
+            .date = *(uint16_t*)(data+0x12),
+        },
+        .last_write = {
+            .cs = 0,
+            .time = *(uint16_t*)(data+0x16),
+            .date = *(uint16_t*)(data+0x18),
+        },
+        ._data = data,
+        ._start =  *(uint16_t*)(data+0x1A),
+    };
+
+    // TODO: Somehow handle LFN entries
+    for (int i = 0; i < 8; i++) {
+        file->name[i] = data[i];
+    }
+    for (int i = 0; i < 3; i++) {
+        file->ext[i] = data[8+i];
+    }
 }
 #endif
 ;

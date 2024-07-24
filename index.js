@@ -11,7 +11,7 @@ const env = {
     w : 64,
     h : 64,
     /** @type {number} */
-    s : 1,
+    s  : 1,
     _s : null,
     /** @type {ImageData} the raw screen image data */
     screen : undefined,
@@ -19,7 +19,8 @@ const env = {
     screen_back : undefined,
     mx : -1,
     my : -1,
-    k : {},
+    k  : {},
+    ks : [],
 };
 
 canvas.onmousemove =
@@ -31,13 +32,15 @@ canvas.onmousemove =
 
 document.onkeydown =
     e => {
-        env.k[e.key] = true;
+        env.k[e.code] = true;
+        if (!e.repeat)
+            env.ks.push(e.key.toUpperCase());
     }
 ;
 
 document.onkeyup =
     e => {
-        delete env.k[e.key];
+        delete env.k[e.code];
     }
 ;
 
@@ -47,7 +50,8 @@ document.onkeyup =
     function update() {
         env.s = env._s;
         if (env._s == null)
-            env.s = Math.floor(Math.min(window.innerHeight/env.h,window.innerWidth/env.w)*RESCALE_PREC)/RESCALE_PREC;
+            // Scale is forced to 5 for now
+            env.s = 5 || Math.floor(Math.min(window.innerHeight/env.h,window.innerWidth/env.w)*RESCALE_PREC)/RESCALE_PREC;
         if (w != env.w || h != env.h || !env.screen) {
             w = env.w;
             h = env.h;
@@ -161,6 +165,51 @@ function keyPressed( k ) {
     return !!env.k[k];
 }
 
+const Key = {
+    mapping: [
+        [ 'KeyA', 'A', 65, 0, 0,  ],
+        [ 'KeyB', 'B', 66, 0, 1,  ],
+        [ 'KeyC', 'C', 67, 0, 2,  ],
+        [ 'KeyD', 'D', 68, 0, 3,  ],
+        [ 'KeyE', 'E', 69, 0, 4,  ],
+        [ 'KeyF', 'F', 70, 0, 5,  ],
+        [ 'KeyG', 'G', 71, 0, 6,  ],
+        [ 'KeyH', 'H', 72, 0, 7,  ],
+        [ 'KeyI', 'I', 73, 0, 8,  ],
+        [ 'KeyJ', 'J', 74, 0, 9,  ],
+        [ 'KeyK', 'K', 75, 0, 10, ],
+        [ 'KeyL', 'L', 76, 0, 11, ],
+        [ 'KeyM', 'M', 77, 0, 12, ],
+        [ 'KeyN', 'N', 78, 0, 13, ],
+        [ 'KeyO', 'O', 79, 0, 14, ],
+        [ 'KeyP', 'P', 80, 0, 15, ],
+        [ 'KeyQ', 'Q', 81, 0, 16, ],
+        [ 'KeyR', 'R', 82, 0, 17, ],
+        [ 'KeyS', 'S', 83, 0, 18, ],
+        [ 'KeyT', 'T', 84, 0, 19, ],
+        [ 'KeyU', 'U', 85, 0, 20, ],
+        [ 'KeyV', 'V', 86, 0, 21, ],
+        [ 'KeyW', 'W', 87, 0, 22, ],
+        [ 'KeyX', 'X', 88, 0, 23, ],
+        [ 'KeyY', 'Y', 89, 0, 24, ],
+        [ 'KeyZ', 'Z', 90, 0, 25, ]
+    ],
+    code(k) {
+        for (const [key, char, code, keyGroup, keyId] of this.mapping) {
+            if (k == key || k == char) {
+                return code;
+            }
+        }
+    },
+    key(k) {
+        for (const [key, char, code, keyGroup, keyId] of this.mapping) {
+            if (k == key || k == char) {
+                return [keyGroup,keyId];
+            }
+        }
+    },
+};
+
 // -- THE "GAME" -- //
 
 screenSize(256,256);
@@ -202,12 +251,44 @@ const WasmLib = {
 
         epu_load_floppy: (id,data_ptr,size_ptr) => {
             const floppy = floppies.get(id);
-            if (!floppy) {
-                return 0;
-            }
+            if (!floppy) return 0;
             if (data_ptr) memory.set(floppy,data_ptr);
             if (size_ptr) memory_view.setUint32(size_ptr,floppy.length,true);
             return 1;
+        },
+
+        ge_keys_last: () => {
+            const [c] = env.ks.splice(0,1);
+            if (typeof c == 'string') {
+                const code = Key.code(c);
+                return code ? code : 0;
+            }
+            return 0;
+        },
+
+        ge_keys_pressed: (ptr) => {
+            let a = 0;
+            let b = 0;
+            for (const k in env.k) if (env.k[k]) {
+                const v = Key.key(k);
+                if (!v) continue;
+                const [id,bit] = v;
+                const u = 1 << bit;
+                if (id == 0)
+                    a |= u;
+                if (id == 1)
+                    b |= u;
+            }
+            memory_view.setInt32(ptr,a,true);
+            memory_view.setInt32(ptr+4,b,true);
+        },
+
+        memset: (ptr,v,c) => {
+            memory.fill(v,ptr,ptr+c);
+        },
+
+        debug: (...args) => {
+            console.debug(...args);
         }
     },
 };
@@ -228,7 +309,27 @@ const floppies = new Map();
         memory = new Uint8Array(instance.exports.memory.buffer);
         memory_view = new DataView(instance.exports.memory.buffer);
         
-        instance.exports.main();
+        let init = instance.exports.init();
+        
+        if ( !init ) {
+            /*while (true) {
+                let status = instance.exports.loop();
+                if (status) {
+                    console.log('execution finished with status',status);
+                    break;
+                }
+                await new Promise( r=>setTimeout(r,1) );
+            }*/
+           const i = setInterval(()=>{
+            let status = instance.exports.loop(1024);
+                if (status) {
+                    console.log('execution finished with status',status);
+                    clearInterval(i);
+                }
+           },0);
+        } else {
+            console.log('`init` failed with status',init);
+        }
     } catch (e) {
         console.error(e);
         const [w,h] = screenSize();
