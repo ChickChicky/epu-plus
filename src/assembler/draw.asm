@@ -1,5 +1,32 @@
-mov ua, 0
-mov ub, 0
+; PRESS IJKL
+mov :8 re, 0x4F
+mov :8 rc, 0x50
+int 0xFF00
+mov :8 ra, 1
+mov :8 rc, 0x52
+int 0xFF00
+mov :8 ra, 2
+mov :8 rc, 0x45
+int 0xFF00
+mov :8 ra, 3
+mov :8 rc, 0x53
+int 0xFF00
+mov :8 ra, 4
+int 0xFF00
+mov :8 rb, 1
+mov :8 ra, 0
+mov :8 rc, 0x49
+int 0xFF00
+mov :8 ra, 1
+mov :8 rc, 0x4A
+int 0xFF00
+mov :8 ra, 2
+mov :8 rc, 0x4B
+int 0xFF00
+mov :8 ra, 3
+mov :8 rc, 0x4C
+int 0xFF00
+int 0xFF0F
 
 loop:
 
