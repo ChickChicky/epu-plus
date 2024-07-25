@@ -35,7 +35,7 @@ export class Loc {
     }
 }
 
-export type TokenKind = 'symbol' | 'identifier' | 'string' | 'eof' | 'newline' | 'number';
+export type TokenKind = 'symbol' | 'identifier' | 'string' | 'eof' | 'newline' | 'number' | 'charlit';
 
 export type TkVal = { token: Token } & (
     { type: 'identifier' } |
@@ -86,7 +86,18 @@ export class Token {
             return {
                 type: 'identifier',
                 token: this,
-            }
+            };
+        }
+        if (this.kind == 'charlit') {
+            const cp = this.val.codePointAt(1);
+            if (!cp)
+                throw parseError(this.loc,'Invalid character literal');
+            return {
+                type: 'number',
+                value: cp, 
+                hint: undefined, 
+                token: this
+            };
         }
     }
 }
@@ -334,6 +345,9 @@ export function tokenize( source: Source ) : Token[] {
             }
             else if (SYMBOL_REGEX.test(k)) {
                 pushtk(k,'symbol');
+            }
+            else if (k.startsWith('\'')) {
+                pushtk(k,'charlit');
             }
             else {
                 throw parseError(new Loc(source,col-k.length+1,row,k.length),'Invalid token');

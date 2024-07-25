@@ -1,30 +1,30 @@
 ; PRESS IJKL
 mov :8 re, 0x4F
-mov :8 rc, 0x50
+mov :8 rc, 'P
 int 0xFF00
 mov :8 ra, 1
-mov :8 rc, 0x52
+mov :8 rc, 'R
 int 0xFF00
 mov :8 ra, 2
-mov :8 rc, 0x45
+mov :8 rc, 'E
 int 0xFF00
 mov :8 ra, 3
-mov :8 rc, 0x53
+mov :8 rc, 'S
 int 0xFF00
 mov :8 ra, 4
 int 0xFF00
 mov :8 rb, 1
 mov :8 ra, 0
-mov :8 rc, 0x49
+mov :8 rc, 'I
 int 0xFF00
 mov :8 ra, 1
-mov :8 rc, 0x4A
+mov :8 rc, 'J
 int 0xFF00
 mov :8 ra, 2
-mov :8 rc, 0x4B
+mov :8 rc, 'K
 int 0xFF00
 mov :8 ra, 3
-mov :8 rc, 0x4C
+mov :8 rc, 'L
 int 0xFF00
 int 0xFF0F
 

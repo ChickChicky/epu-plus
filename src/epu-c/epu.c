@@ -791,8 +791,6 @@ int loop(size_t steps) { for (size_t it = 0; it < steps; it++) {
             read_data(context,&context->pc,tz,&addr);
         }
 
-        debug(tz,src&15);
-
         push(context,4,&context->cp,&context->pc);
         context->pc = addr;
     }
