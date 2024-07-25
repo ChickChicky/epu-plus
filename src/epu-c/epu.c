@@ -689,6 +689,18 @@ int loop(size_t steps) { for (size_t it = 0; it < steps; it++) {
         uint32_t interrupt;
         read_data(context,&context->pc,4,&interrupt);
 
+        if (interrupt >= 0x0100 && interrupt <= 0x01FF) {
+            uint8_t cmd = interrupt&255;
+            switch (cmd) {
+                case 0: { // Random number
+                    context->ra = ge_random();
+                } break;
+                default:
+                    // TODO: Illegal instruction?
+                    break;
+            }
+        }
+
         if (interrupt >= 0xFF00 && interrupt <= 0xFFFF) {
             uint8_t cmd = interrupt&255;
             switch (cmd) {

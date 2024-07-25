@@ -12,6 +12,8 @@ extern void ge_mouse_pos( int* x, int* y );
 extern void ge_keys_pressed( void* pressed );
 /* Returns the last character pressed */
 extern int ge_keys_last( void );
+/* Returns a random 32-bit number */
+extern int32_t ge_random( void );
 
 extern void debug();
 

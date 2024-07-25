@@ -283,6 +283,10 @@ const WasmLib = {
             memory_view.setInt32(ptr+4,b,true);
         },
 
+        ge_random: () => {
+            return Math.random()*Number.MAX_SAFE_INTEGER;
+        },
+
         memset: (ptr,v,c) => {
             memory.fill(v,ptr,ptr+c);
         },
