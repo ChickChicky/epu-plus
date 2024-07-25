@@ -474,13 +474,15 @@ int loop(size_t steps) { for (size_t it = 0; it < steps; it++) {
 
         uint32_t* a = getCPUReg(context,io&15);
 
-             if (op == 0) *a = ((*a) + b) & sz;
-        else if (op == 1) *a = ((*a) - b) & sz;
-        else if (op == 2) *a = ((*a) * b) & sz;
-        else if (op == 3) *a = ((*a) / b) & sz;
-        else if (op == 4) *a = ((*a) & b) & sz;
-        else if (op == 5) *a = ((*a) | b) & sz;
-        else if (op == 6) *a = ((*a) ^ b) & sz;
+             if (op == 0x0) *a = ((*a) + b) & sz;
+        else if (op == 0x1) *a = ((*a) - b) & sz;
+        else if (op == 0x2) *a = ((*a) * b) & sz;
+        else if (op == 0x3) *a = ((*a) / b) & sz;
+        else if (op == 0x4) *a = ((*a) & b) & sz;
+        else if (op == 0x5) *a = ((*a) | b) & sz;
+        else if (op == 0x6) *a = ((*a) ^ b) & sz;
+        else if (op == 0x7) *a = ((*a) << b) & sz;
+        else if (op == 0x8) *a = ((*a) >> b) & sz;
     }
 
     else if (opcode == 2) { // MOV

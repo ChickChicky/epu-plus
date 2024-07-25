@@ -263,6 +263,8 @@ const instructions : { [op: string]: {[k:string|number|symbol]:any}&Op } = {
         ['and', 0x04],
         ['or',  0x05],
         ['xor', 0x06],
+        ['shl', 0x07],
+        ['shr', 0x08],
     ] as [string,number][]).map(
         ([op,id]) => {
             return [

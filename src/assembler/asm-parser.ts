@@ -148,6 +148,8 @@ export class ProgramNode extends ParserNode {
                 'and',
                 'or',
                 'xor',
+                'shl',
+                'shr',
 
                 'jmp',
                 'jeq', 'jne',
