@@ -255,6 +255,7 @@ const instructions : { [op: string]: {[k:string|number|symbol]:any}&Op } = {
         ['xor', 0x06],
         ['shl', 0x07],
         ['shr', 0x08],
+        ['mod', 0x09]
     ] as [string,number][]).map(
         ([op,id]) => {
             return [

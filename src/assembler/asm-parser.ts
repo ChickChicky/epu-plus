@@ -150,6 +150,7 @@ export class ProgramNode extends ParserNode {
                 'xor',
                 'shl',
                 'shr',
+                'mod',
 
                 'jmp',
                 'jeq', 'jne',
