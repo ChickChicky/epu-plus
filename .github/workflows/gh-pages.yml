@@ -34,7 +34,7 @@ jobs:
           chmod +x tasks/*.sh
           tasks/build.sh
           tasks/gendisk.sh
-          echo y | npx tsx src/assembler/assembler.ts src/assembler/draw.asm boot.bin
+          echo y | npx tsx src/assembler/assembler.ts src/assembler/snek.asm boot.bin
           sudo tasks/updboot.sh
       - name: Setup Artifact
         run: |
