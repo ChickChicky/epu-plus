@@ -69,7 +69,7 @@ loop:
     mov ra, 0
     pause:
     add ra, 1
-    cmp ra, 1000
+    cmp ra, 10000
     jge pause
 
 jmp loop

@@ -325,7 +325,7 @@ const floppies = new Map();
                 await new Promise( r=>setTimeout(r,1) );
             }*/
            const i = setInterval(()=>{
-            let status = instance.exports.loop(1024);
+            let status = instance.exports.loop(1024*10);
                 if (status) {
                     console.log('execution finished with status',status);
                     clearInterval(i);
