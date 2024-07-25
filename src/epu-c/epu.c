@@ -218,8 +218,8 @@ int read_data( epu_ctx* ctx, uint32_t* addr, uint32_t size, void* dest ) {
     uint8_t s = *addr >> 16;
     if ( p >= 0x00 && p <= 0x0F ) { // Bound RAM
         for (size_t i = 0; i < size; i++) {
-            ((uint8_t*)dest)[i] = proc_memory[ctx->s].data[((*addr)++)&0xFFFF];
-            *addr &= 0xFFFF; *addr |= (((uint32_t)p)<<24)|(((uint32_t)s)<<16);
+            ((uint8_t*)dest)[i] = proc_memory[ctx->s].data[((*addr)++)&0xFFFFFF];
+            *addr &= 0xFFFFFF;
         }
         return 0;
     }
