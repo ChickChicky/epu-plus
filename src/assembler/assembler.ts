@@ -190,16 +190,6 @@ const instructions : { [op: string]: {[k:string|number|symbol]:any}&Op } = {
             [ Mnem.imdp, Mnem.imd  ]
         ],
         build ( buff, size, args ) {
-            /* let sz = (([
-                [ [ 'reg',  'reg'  ], 1             ],
-                [ [ 'reg',  'reg*' ], 1             ],
-                [ [ 'reg',  'imd*' ], 5             ],
-                [ [ 'reg',  'imd'  ], 1 + (1<<size) ],
-                [ [ 'reg*', 'reg'  ], 1             ],
-                [ [ 'reg*', 'imd'  ], 1 + (1<<size) ],
-                [ [ 'imd*', 'reg'  ], 5             ],
-                 [ [ 'imd*', 'imd'  ], 4 + (1<<size) ]
-            ] as [[string,string],number][]).find(([m])=>m.every((m,i)=>args[i].kind==m))||[])[1];*/
             buff
                 .pushU8(0x02)
                 .pushU8(size&15)
@@ -482,8 +472,12 @@ function resolve(arg: ArgumentNode): Val {
     if (argv.value.type == 'identifier') {
         const name = argv.value.token.val;
         const base = vars[name];
-        const kind = base ? base.kind : Mnem.imd;
+        let kind = base ? base.kind : Mnem.imd;
         const val = base ? base.val : undefined;
+        if (base && (base.kind == Mnem.reg || base.kind == Mnem.regp))
+            kind = argv.ptr ? Mnem.regp : Mnem.reg;
+        else
+            kind = argv.ptr ? Mnem.imdp : Mnem.imd;
         const obj: Val = {
             kind,
             val,
@@ -492,7 +486,10 @@ function resolve(arg: ArgumentNode): Val {
                 if (!value) {
                     throw evalError(argv.value.token.loc,'Unknown variable');
                 }
-                v.kind = value.kind;
+                if (value.kind == Mnem.imd || value.kind == Mnem.imdp)
+                    value.kind = argv.ptr ? Mnem.imdp : Mnem.imd;
+                else
+                    value.kind = argv.ptr ? Mnem.regp : Mnem.reg;
                 v.val = value.val;
             }
         };
