@@ -419,7 +419,7 @@ int init() {
 
         .pc = 0xFF000000,
         .sp = 0,
-        .cp = 0,
+        .cp = 0x0000F000,
 
         .fa = 1.f, .fb = 2.f,
         .fc = 0.f, .fd = 0.f,
@@ -827,7 +827,7 @@ int loop(size_t steps) { for (size_t it = 0; it < steps; it++) {
             context->alive = 0;
         }
         if ( !contexts[0].alive )
-            return 1;
+            return context->flags;
         while ( !contexts[++curr_context].alive ) ;
     }
 } return 0;}
