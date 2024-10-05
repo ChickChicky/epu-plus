@@ -1,7 +1,5 @@
 # EPU-PLUS
 
-An upgrade to my previous virtual custom architectures that this time is entirely virtual. I also stepped up on the virtualization to now be able to create and read FAT16 'floppy disks'.
-
 ## Quick start
 
 Set up the environment with:
