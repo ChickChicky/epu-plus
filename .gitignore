@@ -1,6 +1,5 @@
+/node_modules
 /epu.wasm
-
 /boot.bin
 /boot.img
-
 /updboot/

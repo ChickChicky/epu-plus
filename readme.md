@@ -8,8 +8,8 @@ Set up the environment with:
 
 ```sh
 $ chmod +x tasks/*.sh # Enables the execution of the scripts
-$ tasks/build.sh    # Build the emulator
-$ tasks/gendisk.sh  # Creates a disk image
+$ tasks/build.sh      # Build the emulator
+$ tasks/gendisk.sh    # Creates a disk image
 ```
 
 There is a WIP assembler, that comes with a 'drawing' program
@@ -22,7 +22,7 @@ $ sudo tasks/updboot.sh                                              # Saves it 
 And then you can serve the page, and head over to http://localhost:3232
 
 ```sh
-$ npx http-server -p 3232 -c-1
+$ npm run serve
 ```
 
 ## Errors
