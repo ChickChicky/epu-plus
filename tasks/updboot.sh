@@ -7,7 +7,7 @@ diskfile=${1:-'boot.img'}
 bootfile=${2:-'boot.bin'}
 mountfile=${3:-'updboot'}
 
-mkdir $mountfile
+mkdir -p $mountfile
 mount $diskfile $mountfile
 cp $bootfile $mountfile/BOOT
 umount $diskfile
